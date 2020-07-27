@@ -1,0 +1,126 @@
+import java.util.Scanner;
+
+public class Percolation {
+
+    private QuickFindUF quUF;
+    private int top;
+    private int bottom;
+    private boolean grid[][];
+    private int N;
+
+    // creates n-by-n grid, with all sites initially blocked
+    public Percolation(int N) {
+        this.N = N;//виклик одного конструктора з іншого, щоб не переписувати у новому код ініціалізації
+        int amountOfSites = N * N;
+        quUF = new QuickFindUF(amountOfSites + 2);//new створюється новий екземпляр класа
+        grid = new boolean[amountOfSites][amountOfSites];
+        top = amountOfSites;
+        bottom = amountOfSites + 1;
+        for (int i = 1; i <= N; i++) {
+            for (int j = 1; j <= N; j++) {
+                grid[i][j] = false;
+            }
+        }
+    }
+
+    // returns the number of open sites
+    public int numberOfOpenSites() {
+        int countOpened = 0;
+        for (int i = 1; i <= N; i++) {
+            for (int j = 1; j <= N; j++) {
+                if (grid[i][j]) {
+                    countOpened++;
+                }
+            }
+        }
+        return countOpened;
+    }
+
+    // opens the site (row, col) if it is not open already
+    public void open(int i, int j) {
+
+        grid[i][j] = true;
+        if (i == 1) {
+            quUF.union(convertToArray(i, j), top);
+        }
+        if (i == N) {
+            quUF.union(convertToArray(i, j), bottom);
+        }
+        if (i > 1 && isOpen(i - 1, j)) {
+            quUF.union(convertToArray(i, j), convertToArray(i - 1, j));
+        }
+        if (i < N && isOpen(i + 1, j)) {
+            quUF.union(convertToArray(i, j), convertToArray(i + 1, j));
+        }
+        if (i > 1 && isOpen(i, j - 1)) {
+            quUF.union(convertToArray(i, j), convertToArray(i, j - 1));
+        }
+        if (i < N && isOpen(i, j + 1)) {
+            quUF.union(convertToArray(i, j), convertToArray(i, j + 1));
+        }
+    }
+
+    //переродлюємо двомірний масив в Array масив
+    public int convertToArray(int i, int j) {
+
+        return N * (i - 1) + (j - 1);
+    }
+
+    // is the site (row, col) open?
+    public boolean isOpen(int i, int j) {
+        return grid[i][j];
+    }
+
+    // is the site (row, col) full?
+    public boolean percolates() {
+        return quUF.connected(top, bottom);
+    }
+
+    // is the site (row, col) full?
+    public boolean isFull(int i, int j) {
+        if (isOpen(i, j)) {
+            for (int k = 0; k < N; k++) {
+                if (quUF.connected(convertToArray(i, j), k)) return true;
+            }
+        }
+        return false;
+    }
+
+    // test client (optional)
+    public static void main(String[] args) {
+        int N;
+        int restart = 1;
+
+        Scanner in = new Scanner(System.in);
+        while (restart == 1) {
+
+            try {
+
+                System.out.println("Enter N ");
+                N = in.nextInt();
+                if (N <= 1) {
+                    System.out.println("You are wrong! Try one more time ");
+                    continue;
+                }
+                Percolation percolation = new Percolation(N);
+
+            } catch (OutOfMemoryError e) {
+                System.out.println("Out of memory. Please enter a smaller array dimension.");
+                continue;
+
+            } catch (Exception e) {
+                System.out.println("Wrong symbol");
+                continue;
+            }
+            try {
+                System.out.println("--Enter 1 to restart the program");
+                restart = in.nextInt();
+                if (restart != 1) System.out.println("You finish the program");
+            } catch (Exception e) {
+                System.out.println("You finish the program");
+
+            }
+
+        }
+    }
+}
